@@ -78,6 +78,7 @@ function generateRooms(area, count) {
     let tileCheckboxes = `
       <label><input type="checkbox" value="Floor" onchange="toggleTileInputs(this)"> Floor Tile</label>
       <label><input type="checkbox" value="Wall" onchange="toggleTileInputs(this)"> Wall Tile</label>
+      <label><input type="checkbox" value="TotalFloor" onchange="toggleTileInputs(this)"> Total Floor</label> <!-- ✅ NEW -->
     `;
 
     // If Kitchen, add Highlight checkbox too
@@ -105,14 +106,14 @@ function generateRooms(area, count) {
           <option value="4">2 x 2</option>
           <option value="8">4 x 2</option>
           <option value="2.75x5.25">2.75 x 5.25</option>
-          <option value="1x1_9">1 x 1 (9)</option> <!-- NEW -->
-  <option value="4x2_3">4 x 2 (3)</option> <!-- NEW -->
+          <option value="1x1_9">1 x 1 (9)</option>
+          <option value="4x2_3">4 x 2 (3)</option>
         </select>
         <input type="number" class="floor-price" placeholder="Price per Sq.ft (₹)">
-<div class="design-number-wrapper">
-    <label for="floorDesignNumber">Design Number</label>
-    <input type="text" class="floor-design-number design-number" placeholder="Enter Floor Design Number (optional)">
-  </div>
+        <div class="design-number-wrapper">
+          <label for="floorDesignNumber">Design Number</label>
+          <input type="text" class="floor-design-number design-number" placeholder="Enter Floor Design Number (optional)">
+        </div>
       </div>
 
       <div class="wall-tile-inputs" style="display:none;">
@@ -129,9 +130,28 @@ function generateRooms(area, count) {
         <input type="number" class="wall-highlight" placeholder="Highlight Tile Rows">
         <input type="number" class="wall-light" placeholder="Light Tile Rows">
         <div class="design-number-wrapper">
-    <label for="wallDesignNumber">Design Number</label>
-    <input type="text" class="wall-design-number design-number" placeholder="Enter Wall Design Number (optional)">
-  </div>
+          <label for="wallDesignNumber">Design Number</label>
+          <input type="text" class="wall-design-number design-number" placeholder="Enter Wall Design Number (optional)">
+        </div>
+      </div>
+
+      <div class="totalfloor-tile-inputs" style="display:none;"> <!-- ✅ UPDATED -->
+        <h5>Total Floor Details</h5>
+        <input type="number" class="totalfloor-sqft" placeholder="Total Sq.Ft"> <!-- ✅ only Sq.Ft -->
+        <select class="totalfloor-tileSize">
+          <option value="1">1 x 1</option>
+          <option value="2.25">16 x 16</option>
+          <option value="4">2 x 2</option>
+          <option value="8">4 x 2</option>
+          <option value="2.75x5.25">2.75 x 5.25</option>
+          <option value="1x1_9">1 x 1 (9)</option>
+          <option value="4x2_3">4 x 2 (3)</option>
+        </select>
+        <input type="number" class="totalfloor-price" placeholder="Price per Sq.ft (₹)">
+        <div class="design-number-wrapper">
+          <label for="totalFloorDesignNumber">Design Number</label>
+          <input type="text" class="totalfloor-design-number design-number" placeholder="Enter Total Floor Design Number (optional)">
+        </div>
       </div>
 
       <div class="highlight-tile-inputs" style="display:none;">
@@ -144,9 +164,9 @@ function generateRooms(area, count) {
         <input type="number" class="highlight-count" placeholder="Number of Tiles">
         <input type="number" class="highlight-price" placeholder="Price per sq.feet ">
         <div class="design-number-wrapper">
-    <label for="highlightDesignNumber">Design Number</label>
-    <input type="text" class="highlight-design-number design-number" placeholder="Enter Highlight Design Number (optional)">
-  </div>
+          <label for="highlightDesignNumber">Design Number</label>
+          <input type="text" class="highlight-design-number design-number" placeholder="Enter Highlight Design Number (optional)">
+        </div>
       </div>
 
       <button onclick="calculateRoomDetails(this)">📋 Room ${i} Calculation</button>
@@ -155,6 +175,7 @@ function generateRooms(area, count) {
     roomContainer.appendChild(roomDiv);
   }
 }
+
 
 function toggleTileInputs(checkbox) {
   const room = checkbox.closest('.room-section');
@@ -168,7 +189,7 @@ function calculateRoomDetails(button) {
   let totalWeight = 0;
   let totalArea = 0;
 
-  ["floor", "wall", "highlight"].forEach(type => {
+  ["floor", "wall", "highlight", "totalfloor"].forEach(type => {  // ✅ Added totalfloor
     const box = room.querySelector(`.${type}-tile-inputs`);
     if (box && box.style.display !== 'none') {
       const tileKey = box.querySelector(`.${type}-tileSize`)?.value;
@@ -201,23 +222,49 @@ function calculateRoomDetails(button) {
             <p>Total Weight: ${weight.toFixed(2)} kg</p>
           `;
         }
-      } else {
+      } 
+      else if (type === "totalfloor") {   // ✅ Direct Sq.ft entry logic
+        const directSqft = parseFloat(box.querySelector('.totalfloor-sqft')?.value);
+        const pricePerSqft = parseFloat(box.querySelector('.totalfloor-price')?.value);
+
+        if (!isNaN(directSqft) && !isNaN(pricePerSqft)) {
+          const boxes = Math.ceil(directSqft / spec.coverage);
+          const pricePerBox = pricePerSqft * spec.coverage;  // ✅ convert sq.ft price → box price
+          const cost = boxes * pricePerBox;
+          const weight = boxes * spec.weight;
+
+          totalCost += cost;
+          totalWeight += weight;
+          totalArea += directSqft;
+
+          output += `
+            <h5>🧱 Total Floor</h5>
+            <p>Total Area: ${directSqft.toFixed(2)} sq.ft</p>
+            <p>Total Boxes: ${boxes}</p>
+            <p>Price per Sq.ft: ₹${pricePerSqft.toFixed(2)}</p>
+            <p>Price per Box: ₹${pricePerBox.toFixed(2)}</p>
+            <p>Total Cost: ₹${cost.toFixed(2)}</p>
+            <p>Total Weight: ${weight.toFixed(2)} kg</p>
+          `;
+        }
+      }
+      else {
         const w = parseFloat(box.querySelector(`.${type}-width`)?.value);
         const h = parseFloat(box.querySelector(`.${type}-height`)?.value);
         const p = parseFloat(box.querySelector(`.${type}-price`)?.value);
 
         if (!isNaN(w) && !isNaN(h) && !isNaN(p)) {
           let tilesPerRow, rows;
-         if (tileKey === "2.25") {
-  tilesPerRow = Math.ceil((w * 12) / 16);
-  rows = Math.ceil((h * 12) / 16);
-} else if (tileKey === "2.75x5.25") {
-  tilesPerRow = Math.ceil((w * 12) / 63);
-  rows = Math.ceil((h * 12) / 31.5);
-} else {
-  tilesPerRow = Math.ceil(w / spec.w);
-  rows = Math.ceil(h / spec.h);
-}
+          if (tileKey === "2.25") {
+            tilesPerRow = Math.ceil((w * 12) / 16);
+            rows = Math.ceil((h * 12) / 16);
+          } else if (tileKey === "2.75x5.25") {
+            tilesPerRow = Math.ceil((w * 12) / 63);
+            rows = Math.ceil((h * 12) / 31.5);
+          } else {
+            tilesPerRow = Math.ceil(w / spec.w);
+            rows = Math.ceil(h / spec.h);
+          }
 
           const displayWidth = tileKey === "2.75x5.25" ? rows : tilesPerRow;
           const displayLength = tileKey === "2.75x5.25" ? tilesPerRow : rows;
