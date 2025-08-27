@@ -79,6 +79,7 @@ function generateRooms(area, count) {
       <label><input type="checkbox" value="Floor" onchange="toggleTileInputs(this)"> Floor Tile</label>
       <label><input type="checkbox" value="Wall" onchange="toggleTileInputs(this)"> Wall Tile</label>
       <label><input type="checkbox" value="TotalFloor" onchange="toggleTileInputs(this)"> Total Floor</label>
+      <label><input type="checkbox" value="TotalWall" onchange="toggleTileInputs(this)"> Total Wall</label>
     `;
 
     if (area.toLowerCase() === "kitchen") {
@@ -95,6 +96,7 @@ function generateRooms(area, count) {
         ${tileCheckboxes}
       </div>
 
+      <!-- ✅ Floor -->
       <div class="floor-tile-inputs" style="display:none;">
         <h5>Floor Tile Details</h5>
         <input type="number" class="floor-width" placeholder="Floor Length">
@@ -110,11 +112,12 @@ function generateRooms(area, count) {
         </select>
         <input type="number" class="floor-price" placeholder="Price per Sq.ft (₹)">
         <div class="design-number-wrapper">
-          <label for="floorDesignNumber">Design Number</label>
+          <label>Design Number</label>
           <input type="text" class="floor-design-number design-number" placeholder="Enter Floor Design Number (optional)">
         </div>
       </div>
 
+      <!-- ✅ Wall -->
       <div class="wall-tile-inputs" style="display:none;">
         <h5>Wall Tile Details</h5>
         <input type="number" class="wall-width" placeholder="Wall Length">
@@ -129,12 +132,12 @@ function generateRooms(area, count) {
         <input type="number" class="wall-highlight" placeholder="Highlight Tile Rows">
         <input type="number" class="wall-light" placeholder="Light Tile Rows">
         <div class="design-number-wrapper">
-          <label for="wallDesignNumber">Design Number</label>
+          <label>Design Number</label>
           <input type="text" class="wall-design-number design-number" placeholder="Enter Wall Design Number (optional)">
         </div>
       </div>
 
-      <!-- ✅ Total Floor Section -->
+      <!-- ✅ Total Floor -->
       <div class="totalfloor-tile-inputs" style="display:none;">
         <h5>Total Floor Details</h5>
         <label>Number of Floors:</label>
@@ -142,6 +145,15 @@ function generateRooms(area, count) {
         <div class="totalfloor-container"></div>
       </div>
 
+      <!-- ✅ Total Wall -->
+      <div class="totalwall-tile-inputs" style="display:none;">
+        <h5>Total Wall Details</h5>
+        <label>Number of Walls:</label>
+        <input type="number" class="num-totalwalls" min="1" value="1" onchange="generateTotalWallInputs(this)">
+        <div class="totalwall-container"></div>
+      </div>
+
+      <!-- ✅ Highlight -->
       <div class="highlight-tile-inputs" style="display:none;">
         <h5>Highlight Tile Details</h5>
         <select class="highlight-tileSize">
@@ -152,7 +164,7 @@ function generateRooms(area, count) {
         <input type="number" class="highlight-count" placeholder="Number of Tiles">
         <input type="number" class="highlight-price" placeholder="Price per sq.feet ">
         <div class="design-number-wrapper">
-          <label for="highlightDesignNumber">Design Number</label>
+          <label>Design Number</label>
           <input type="text" class="highlight-design-number design-number" placeholder="Enter Highlight Design Number (optional)">
         </div>
       </div>
@@ -172,29 +184,35 @@ function toggleTileInputs(checkbox) {
 
   panel.style.display = checkbox.checked ? 'block' : 'none';
 
-  // ✅ When Total Floor is turned ON, auto-generate at least 1 group
   if (checkbox.value === 'TotalFloor') {
     const numInput = panel.querySelector('.num-totalfloors');
     const container = panel.querySelector('.totalfloor-container');
-
     if (checkbox.checked) {
       if (!numInput.value || parseInt(numInput.value) < 1) numInput.value = 1;
-      generateTotalFloorInputs(numInput); // create at least 1 input group
+      generateTotalFloorInputs(numInput);
     } else {
-      // turned off → clear inputs
-      if (container) container.innerHTML = '';
+      container.innerHTML = '';
+    }
+  }
+
+  if (checkbox.value === 'TotalWall') {
+    const numInput = panel.querySelector('.num-totalwalls');
+    const container = panel.querySelector('.totalwall-container');
+    if (checkbox.checked) {
+      if (!numInput.value || parseInt(numInput.value) < 1) numInput.value = 1;
+      generateTotalWallInputs(numInput);
+    } else {
+      container.innerHTML = '';
     }
   }
 }
 
-/* ✅ Generate multiple Total Floor inputs — always at least 1 */
+/* ✅ Total Floor */
 function generateTotalFloorInputs(input) {
   const container = input.closest('.totalfloor-tile-inputs').querySelector('.totalfloor-container');
   container.innerHTML = "";
-
   let count = parseInt(input.value);
-  if (isNaN(count) || count < 1) count = 1; // enforce minimum 1
-
+  if (isNaN(count) || count < 1) count = 1;
   for (let i = 1; i <= count; i++) {
     container.innerHTML += `
       <div class="single-totalfloor">
@@ -211,24 +229,47 @@ function generateTotalFloorInputs(input) {
         </select>
         <input type="number" class="totalfloor-price" placeholder="Price per Sq.ft (₹)">
         <div class="design-number-wrapper">
-          <label for="totalFloorDesignNumber">Design Number</label>
+          <label>Design Number</label>
           <input type="text" class="totalfloor-design-number design-number" placeholder="Enter Total Floor Design Number (optional)">
         </div>
-      </div>
-    `;
+      </div>`;
   }
 }
 
+/* ✅ Total Wall */
+function generateTotalWallInputs(input) {
+  const container = input.closest('.totalwall-tile-inputs').querySelector('.totalwall-container');
+  container.innerHTML = "";
+  let count = parseInt(input.value);
+  if (isNaN(count) || count < 1) count = 1;
+  for (let i = 1; i <= count; i++) {
+    container.innerHTML += `
+      <div class="single-totalwall">
+        <h6>Total Wall ${i}</h6>
+        <input type="number" class="totalwall-sqft" placeholder="Total Sq.Ft">
+        <select class="totalwall-tileSize">
+          <option value="1.25">15 x 10</option>
+          <option value="1.5">18 x 12</option>
+          <option value="2">2 x 1</option>
+        </select>
+        <input type="number" class="totalwall-price" placeholder="Price per Sq.ft (₹)">
+        <div class="design-number-wrapper">
+          <label>Design Number</label>
+          <input type="text" class="totalwall-design-number design-number" placeholder="Enter Total Wall Design Number (optional)">
+        </div>
+      </div>`;
+  }
+}
 
 function calculateRoomDetails(button) {
   const room = button.closest('.room-section');
   let output = '';
   let totalCost = 0, totalWeight = 0, totalArea = 0;
 
-  // ✅ Reset before recalculating
   room.totalFloorData = [];
+  room.totalWallData = [];
 
-  ["floor", "wall", "highlight", "totalfloor"].forEach(type => {  
+  ["floor", "wall", "highlight", "totalfloor", "totalwall"].forEach(type => {  
     const box = room.querySelector(`.${type}-tile-inputs`);
     if (box && box.style.display !== 'none') {
       const tileKey = box.querySelector(`.${type}-tileSize`)?.value;
@@ -253,12 +294,12 @@ function calculateRoomDetails(button) {
             <p>Total Weight: ${weight.toFixed(2)} kg</p>`;
         }
       } 
-      else if (type === "totalfloor") {   
-        const allGroups = box.querySelectorAll('.single-totalfloor');
+      else if (type === "totalfloor" || type === "totalwall") {   
+        const allGroups = box.querySelectorAll(`.single-${type}`);
         allGroups.forEach((group, index) => {
-          const directSqft = parseFloat(group.querySelector('.totalfloor-sqft')?.value);
-          const pricePerSqft = parseFloat(group.querySelector('.totalfloor-price')?.value);
-          const design = group.querySelector('.totalfloor-design-number')?.value || "-";
+          const directSqft = parseFloat(group.querySelector(`.${type}-sqft`)?.value);
+          const pricePerSqft = parseFloat(group.querySelector(`.${type}-price`)?.value);
+          const design = group.querySelector(`.${type}-design-number`)?.value || "-";
           if (!isNaN(directSqft) && !isNaN(pricePerSqft)) {
             const boxes = Math.ceil(directSqft / spec.coverage);
             const pricePerBox = pricePerSqft * spec.coverage;
@@ -266,19 +307,14 @@ function calculateRoomDetails(button) {
             const weight = boxes * spec.weight;
             totalCost += cost; totalWeight += weight; totalArea += directSqft;
 
-            // ✅ Save for Final Summary
-            room.totalFloorData.push({ 
-              floor: index+1, 
-              design, 
-              area: directSqft, 
-              totalBoxes: boxes, 
-              price: pricePerSqft, 
-              cost, 
-              weight 
-            });
+            if (type === "totalfloor") {
+              room.totalFloorData.push({ floor: index+1, design, area: directSqft, totalBoxes: boxes, price: pricePerSqft, cost, weight });
+            } else {
+              room.totalWallData.push({ wall: index+1, design, area: directSqft, totalBoxes: boxes, price: pricePerSqft, cost, weight });
+            }
 
             output += `
-              <h5>🏢 Total Floor ${index+1}</h5>
+              <h5>${type === "totalfloor" ? "🏢 Total Floor" : "🧱 Total Wall"} ${index+1}</h5>
               <p>Design Number: ${design}</p>
               <p>Total Area: ${directSqft.toFixed(2)} sq.ft</p>
               <p>Total Boxes: ${boxes}</p>
@@ -289,7 +325,7 @@ function calculateRoomDetails(button) {
         });
       }
       else {
-        // ✅ Floor / Wall logic same as before
+        // ✅ Floor / Wall (normal)
         const w = parseFloat(box.querySelector(`.${type}-width`)?.value);
         const h = parseFloat(box.querySelector(`.${type}-height`)?.value);
         const p = parseFloat(box.querySelector(`.${type}-price`)?.value);
@@ -352,15 +388,8 @@ function calculateRoomDetails(button) {
     }
   });
 
-  // ✅ Save totals AND totalFloorData for Final Summary
-  room.totalSummary = { 
-    totalArea, 
-    totalCost, 
-    totalWeight, 
-    totalFloorData: room.totalFloorData   // <--- added this line
-  };
+  room.totalSummary = { totalArea, totalCost, totalWeight, totalFloorData: room.totalFloorData, totalWallData: room.totalWallData };
 
-  // ✅ Display output inside the room
   room.querySelector('.output-details').innerHTML = output +
     `<p><strong>Total Room Area:</strong> ${totalArea.toFixed(2)} sq.ft</p>
      <p><strong>Total Room Cost:</strong> ₹${totalCost.toFixed(2)}</p>
@@ -388,10 +417,11 @@ function finalSummaryCalculation() {
       </div>
     </div>`;
 
-  // ✅ Collect all total floor data
+  // ✅ Collect all total floor & wall data
   let allTotalFloors = [];
+  let allTotalWalls = [];
 
-  // ✅ Loop through Rooms (Floor, Wall, Highlight, TotalFloor)
+  // ✅ Loop through Rooms (Floor, Wall, Highlight, TotalFloor, TotalWall)
   const allRooms = document.querySelectorAll(".room-section");
   allRooms.forEach(room => {
     let roomCost = 0, roomWeight = 0, roomArea = 0;
@@ -467,6 +497,7 @@ function finalSummaryCalculation() {
       }
     });
 
+    // ✅ Highlight section
     const highlightBox = room.querySelector(".highlight-tile-inputs");
     if (highlightBox && highlightBox.style.display !== 'none') {
       const tileKey = highlightBox.querySelector('.highlight-tileSize')?.value;
@@ -493,10 +524,15 @@ function finalSummaryCalculation() {
       }
     }
 
-    // ✅ Check Total Floor Data inside this room
+    // ✅ Collect total floor & wall data for summary
     if (room.totalFloorData && Array.isArray(room.totalFloorData)) {
       room.totalFloorData.forEach(floor => {
-        allTotalFloors.push({ ...floor, areaName: roomTitle }); // <-- add room name
+        allTotalFloors.push({ ...floor, areaName: roomTitle });
+      });
+    }
+    if (room.totalWallData && Array.isArray(room.totalWallData)) {
+      room.totalWallData.forEach(wall => {
+        allTotalWalls.push({ ...wall, areaName: roomTitle });
       });
     }
 
@@ -517,7 +553,7 @@ function finalSummaryCalculation() {
     }
   });
 
-  // ✅ Now print all total floor data
+  // ✅ Print all total floor data
   if (allTotalFloors.length > 0) {
     allTotalFloors.forEach((t, index) => {
       const floorTable = `
@@ -536,6 +572,28 @@ function finalSummaryCalculation() {
       grandTotalArea += t.area;
       grandTotalCost += t.cost;
       grandTotalWeight += t.weight;
+    });
+  }
+
+  // ✅ Print all total wall data
+  if (allTotalWalls.length > 0) {
+    allTotalWalls.forEach((w, index) => {
+      const wallTable = `
+        <table border="1" style="width:100%; border-collapse: collapse;">
+          <thead><tr><th colspan="2">${w.areaName ? w.areaName + " - " : ""}TOTAL WALL ${index + 1}</th></tr></thead>
+          <tbody>
+            <tr><td colspan="2" style="text-align: center; font-weight: bold;">( Design Number : ${w.design || ""} )</td></tr>
+            <tr><td>Total Area</td><td>${w.area.toFixed(2)} sq.ft</td></tr>
+            <tr><td>Total Boxes</td><td>${w.totalBoxes}</td></tr>
+            <tr><td>Price per Sq.ft</td><td>₹${w.price.toFixed(2)}</td></tr>
+            <tr><td>Total Cost</td><td>₹${w.cost.toFixed(2)}</td></tr>
+          </tbody>
+        </table><br>`;
+      printTables += wallTable;
+
+      grandTotalArea += w.area;
+      grandTotalCost += w.cost;
+      grandTotalWeight += w.weight;
     });
   }
 
@@ -585,6 +643,7 @@ function finalSummaryCalculation() {
     ${printTables}
     ${grandTable}`;
 }
+
 
 
 
